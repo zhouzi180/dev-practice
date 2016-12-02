@@ -3,7 +3,10 @@ import requests
 from PIL import Image
 from pytesseract import image_to_string
 from bs4 import BeautifulSoup
-# import re
+import json
+# from flask import *
+
+# app = Flask(__name__)
 
 Basicurl = "http://opac.ncu.edu.cn/reader/redr_verify.php"
 Chkurl = "http://opac.ncu.edu.cn/reader/captcha.php"
@@ -38,8 +41,8 @@ class LoginUser():
     def login(self):
         self.get_capture()
         post_data = {
-            'number': '6103115112',
-            'passwd': 'xiezhibin',
+            'number': 'username',
+            'passwd': 'password',
             'captcha': self.Chkcode,
             'select': 'cert_no',
             'returnUrl': ''
@@ -49,19 +52,32 @@ class LoginUser():
                                       cookies=self.chkcookies,
                                       data=post_data
                                       )
-        # pattern = re.compile('')
-        a = requests.get("http://opac.ncu.edu.cn/reader/book_lst.php",cookies = self.chkcookies)
-        a.encoding = 'utf-8'
-        soup = BeautifulSoup(a.text,"html5lib")
-        b = soup.find_all("tr")
-        for c in b:
-            d = c.find_all("td")
-            print d[].text
-        # return a.text
-        # print (self.chkcookies)
-        # print (self.headers)
+        all = requests.get(
+            "http://opac.ncu.edu.cn/reader/book_lst.php", cookies=self.chkcookies)
+        all.encoding = 'utf-8'
+        soup = BeautifulSoup(all.text, "html5lib")
+        books = soup.find_all("tr")
+        del books[0]
+        del books[-1]
+        del books[-1]
+        book_num = {'books': []}
+        for book in books:
+            book_json = {}
+            book_detail = book.find_all("td")
+            book_title = book_detail[1].contents
+            book_json["id"] = book_detail[0].text
+            book_json["name"] = book_title[0].text
+            book_json["author"] = book_title[1].strip(" / ")
+            book_json["Borrowing Date"] = book_detail[2].text
+            book_json["Return Date"] = book_detail[3].text
+            book_json["amount"] = book_detail[4].text
+            book_json["location"] = book_detail[5].text
+            book_json["attachment"] = book_detail[6].text
+            book_num['books'].append(book_json)
+        return book_num
 
 
-user = LoginUser('6130115112', 'xiezhibin')
+user = LoginUser('', '')
 page = user.login()
 print(page)
+

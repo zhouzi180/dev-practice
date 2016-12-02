@@ -33,17 +33,18 @@ def api_search(name, page=1):
     books.encoding = 'utf-8'
     soup = BeautifulSoup(books.text, "html5lib")
     books = soup.find_all("tr")
+    del books[0]
     for book in books:
         book_json = {}
         book1 = book.find_all("td")
-        book_json["id"] = book1[0].text
+        book_json["num"] = book1[0].text
         book_json["name"] = book1[1].text
+        book_json["id"] = books[1].a.attrs['href'][-10:]
         book_json["author"] = book1[2].text
         book_json["publisher"] = book1[3].text
         book_json["book_id"] = book1[4].text
         book_json["book_type"] = book1[5].text
         book_num['books'].append(book_json)
-        print book
     return book_num
 
 #@app.route('/<book>', defaults={'page' : 1})
